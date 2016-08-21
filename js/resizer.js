@@ -3,7 +3,7 @@
 (function() {
   /**
    * @constructor
-   * @param {FileBuffer}
+   * @param {string} image
    */
   var Resizer = function(image) {
     // Изображение, с которым будет вестись работа.
@@ -28,6 +28,7 @@
        * @type {number}
        */
       var INITIAL_SIDE_RATIO = 0.75;
+
       // Размер меньшей стороны изображения.
       var side = Math.min(
           this._container.width * INITIAL_SIDE_RATIO,
@@ -41,7 +42,7 @@
           side);
 
       // Отрисовка изначального состояния канваса.
-      this.redraw();
+      this.setConstraint();
     }.bind(this);
 
     // Фиксирование контекста обработчиков.
@@ -86,7 +87,6 @@
       // NB! Такие параметры сохраняются на время всего процесса отрисовки
       // canvas'a поэтому важно вовремя поменять их, если нужно начать отрисовку
       // чего-либо с другой обводкой.
-
       // Толщина линии.
       this._ctx.lineWidth = 6;
       // Цвет обводки.
@@ -96,9 +96,7 @@
       this._ctx.setLineDash([15, 10]);
       // Смещение первого штриха от начала линии.
       this._ctx.lineDashOffset = 7;
-
-      // Сохранение состояния канваса.
-      // Подробней см. строку 132.
+      // // Сохранение состояния канваса.
       this._ctx.save();
 
       // Установка начальной точки системы координат в центр холста.
@@ -119,14 +117,42 @@
           this._resizeConstraint.side - this._ctx.lineWidth / 2,
           this._resizeConstraint.side - this._ctx.lineWidth / 2);
 
-      // Восстановление состояния канваса, которое было до вызова ctx.save
-      // и последующего изменения системы координат. Нужно для того, чтобы
-      // следующий кадр рисовался с привычной системой координат, где точка
-      // 0 0 находится в левом верхнем углу холста, в противном случае
-      // некорректно сработает даже очистка холста или нужно будет использовать
-      // сложные рассчеты для координат прямоугольника, который нужно очистить.
+      // Отрисовка черной рамки
+      this._ctx.translate(-this._container.width / 2, -this._container.height / 2);
+      this._ctx.globalAlpha = 0.8;
+      this._ctx.fillStyle = 'black';
+      var deltaOX = this._container.width - this._resizeConstraint.side -
+          (this._container.width - this._resizeConstraint.side) / 2 - this._ctx.lineWidth;
+      var deltaOY = this._container.height - this._resizeConstraint.side -
+          (this._container.height - this._resizeConstraint.side) / 2 - this._ctx.lineWidth;
+
+
+      this._ctx.fillRect(
+        deltaOX, 0, this._resizeConstraint.side + this._ctx.lineWidth / 2,
+        (this._container.height - this._resizeConstraint.side) / 2 - this._ctx.lineWidth
+      );
+      this._ctx.fillRect(
+        0, 0, (this._container.width - this._resizeConstraint.side) / 2 - this._ctx.lineWidth, this._container.height
+      );
+      this._ctx.fillRect(
+        deltaOX, deltaOY + this._resizeConstraint.side + this._ctx.lineWidth / 2,
+        this._resizeConstraint.side + this._ctx.lineWidth / 2, (this._container.height - this._resizeConstraint.side) / 2 + this._ctx.lineWidth
+      );
+      this._ctx.fillRect(
+        deltaOX + this._resizeConstraint.side + this._ctx.lineWidth / 2, 0,
+        (this._container.width - this._resizeConstraint.side) / 2 + this._ctx.lineWidth, this._container.height
+      );
+
+      this._ctx.font = '12px Calibri';
+      this._ctx.fillStyle = 'white';
+      this._ctx.fillText(
+        this._image.naturalWidth + 'x' + this._image.naturalHeight,
+        deltaOX + this._resizeConstraint.side / 2 - this._ctx.lineWidth, deltaOY - this._ctx.lineWidth * 2
+      );
+
       this._ctx.restore();
     },
+
 
     /**
      * Включение режима перемещения. Запоминается текущее положение курсора,
@@ -287,7 +313,6 @@
       return imageToExport;
     }
   };
-
   /**
    * Вспомогательный тип, описывающий квадрат.
    * @constructor
