@@ -6,9 +6,47 @@
  */
 
 'use strict';
-
 (function() {
   /** @enum {string} */
+
+
+/*Функция добавления кукисов 
+**name,value options {}
+*/
+
+  function setCookie(name, value, options) {
+  options = options || {};
+
+  var expires = options.expires;
+
+  if (typeof expires == "number" && expires) {
+    var d = new Date();
+    d.setTime(d.getTime() + expires * 1000);
+    expires = options.expires = d;
+  }
+  if (expires && expires.toUTCString) {
+    options.expires = expires.toUTCString();
+  }
+
+  value = encodeURIComponent(value);
+
+  var updatedCookie = name + "=" + value;
+
+  for (var propName in options) {
+    updatedCookie += "; " + propName;
+    var propValue = options[propName];
+    if (propValue !== true) {
+      updatedCookie += "=" + propValue;
+    }
+  }
+
+  document.cookie = updatedCookie;
+}
+
+
+
+
+
   var FileType = {
     'GIF': '',
     'JPEG': '',
@@ -72,7 +110,63 @@
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    return true;
+    if (!xInput.value || !sizeInput.value || !yInput.value) {
+      return false;
+    }else if (currentResizer._image.naturalWidth >= +xInput.value + +sizeInput.value && 
+      currentResizer._image.naturalHeight >= +yInput.value + +sizeInput.value  ) {
+      return true;
+    }else {
+      return false;
+    }
+  }
+
+   /**
+   * Активирует/Деактивирует, кнопку отправки формы кадрирования.
+   */
+  function toggleFormSubmit() {
+    var resizeBtn = document.querySelector('#resize-fwd');
+    if (resizeFormIsValid()) {
+      resizeBtn.disabled = false;
+    }else {
+      resizeBtn.disabled = true;
+    }
+  }
+  
+  /**
+   * Задает фильтр по умолчанию из cookie.
+   */
+   //функция получения куки
+function getCookie(name) {
+  var matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
+
+
+  function addFilterForm() {
+    var none = document.querySelector('#upload-filter-none');
+    var chrome = document.querySelector('#upload-filter-chrome');
+    var sepia = document.querySelector('#upload-filter-sepia');
+    var marvin = document.querySelector('#upload-filter-marvin');
+
+    switch (browserCookies.get('upload-filter')) {
+      case none.value:
+        none.checked = true;
+        break;
+
+      case chrome.value:
+        chrome.checked = true;
+        break;
+
+      case sepia.value:
+        sepia.checked = true;
+        break;
+
+      case marvin.value:
+        marvin.checked = true;
+        break;
+    }
   }
 
   /**
@@ -87,6 +181,12 @@
    */
   var resizeForm = document.forms['upload-resize'];
 
+  // Поля формы кадрирования изображения.
+  var xInput = resizeForm.elements.x;
+  var yInput = resizeForm.elements.y;
+  var sizeInput = resizeForm.elements.size;
+
+  
   /**
    * Форма добавления фильтра.
    * @type {HTMLFormElement}
@@ -170,7 +270,28 @@
       }
     }
   };
+  /**
+   * Обработка ввода значений в поле формы кадрирования.
+   */
 
+  resizeForm.oninput = function() {
+    var maxInputX = currentResizer._image.naturalWidth - sizeInput.value;
+    var maxInputY = currentResizer._image.naturalHeight - sizeInput.value;
+
+    if (xInput.value < 0) {
+      xInput.value = 0;
+    }else if (xInput.value > maxInputX) {
+      xInput.value = maxInputX;
+    }
+
+    if (yInput.value < 0) {
+      yInput.value = 0;
+    }else if (yInput.value > maxInputY) {
+      yInput.value = maxInputY;
+    }
+
+    toggleFormSubmit();
+  };
   /**
    * Обработка сброса формы кадрирования. Возвращает в начальное состояние
    * и обновляет фон.
@@ -220,6 +341,33 @@
    */
   filterForm.onsubmit = function(evt) {
     evt.preventDefault();
+
+    var radio = filterForm.querySelectorAll('[type=radio]');
+    var typeFilter;
+
+    for (var i = 0; i < radio.length; i++) {
+      if (radio[i].checked) {
+        typeFilter = radio[i].value;
+      }
+    }
+    console.log(typeFilter);
+    // Текущая дата.
+    var currentDate = new Date();
+    // Текущая дата, миллисекунды.
+    var msCurrentDate = currentDate.getTime();
+    // Текущий год.
+    var currentYear = currentDate.getFullYear();
+
+    // Дата последнего прошедшего дня рождения
+    var byDay = new Date(currentYear - 1, 9, 15);
+    // Дата последнего прошедшего дня рождения в миллисекундах
+    var byDayMs = byDay.getTime();
+
+    // Дата окончания хранения cookie.
+    var expDate = new Date(msCurrentDate + (msCurrentDate - byDayMs));
+
+    // Записываем в cookie выбранный фильтр и дату.
+    setCookie('upload-filter', typeFilter, {expires: expDate.toUTCString()});
 
     cleanupResizer();
     updateBackground();
