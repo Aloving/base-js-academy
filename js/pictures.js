@@ -13,7 +13,4 @@ function templateFunction(item){
   element.querySelector('.picture-likes').textContent = item.likes;
   return element;
 }
-
-
-
 }
