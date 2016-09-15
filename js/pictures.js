@@ -1,10 +1,26 @@
 window.onload = function(){
+  var loadedData = null;
   var container = document.querySelector('.pictures');
 
-  pictures.forEach(function(picture){
-    var element = templateFunction(picture);
-    container.appendChild(element);
-  });
+  getPictures();
+  function renderPictures(pictures){
+    pictures.forEach(function(picture){
+      var element = templateFunction(picture);
+      container.appendChild(element);
+    });
+  };
+
+
+  function getPictures(){
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET','data/pictures.json');
+    xhr.onload = function(evt){
+      var rawData = evt.target.response;
+      var loadedPictures = JSON.parse(rawData);
+      renderPictures(loadedPictures)
+    };
+    xhr.send()
+  };
 
   function templateFunction(item){
     var template = document.querySelector('#picture-template');
@@ -30,5 +46,5 @@ window.onload = function(){
         element.classList.add('picture-load-failure');
           }, IMAGE_LOAD_TIMEOUT);
     return element;
-  }
+  };
 }
