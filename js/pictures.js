@@ -1,13 +1,57 @@
-window.onload = function(){
+
   var loadedData = null;
   var container = document.querySelector('.pictures');
 
+  var filters = document.querySelectorAll('.filters-radio');
+  var activeFilter = 'filter-popular';
+  var pictures = [];
+  for(var i = 0; i < filters.length; i++){
+    filters[i].onclick = function(evt){
+      var clickedElementID = evt.target.id;
+      activeFilter = evt.target.class;
+      setActiveFilter(clickedElementID);
+    };
+  };
+
+
+  function setActiveFilter(id){
+    if(activeFilter === id){
+      return
+    }
+    var filteredPictures = pictures.slice(0);
+
+    switch(id){
+      case 'filter-popular':
+        filteredPictures = pictures.slice(0);
+      break;
+      case 'filter-new':
+        filterePictures = pictures.slice(0);
+        filteredPictures = filteredPictures.sort(function(a,b){
+          return Date.parse(a.date) - Date.parse(b.date);
+        });
+      break;
+      case 'filter-discussed':
+        filterePictures = pictures.slice(0);
+        filteredPictures = filteredPictures.sort(function(a,b){
+          return b.comments - a.comments;
+        });
+      break;
+    }
+
+    renderPictures(filteredPictures);
+  };
+
   getPictures();
+
+
   function renderPictures(pictures){
+    container.innerHTML = '';
+    var fragment = document.createDocumentFragment();
     pictures.forEach(function(picture){
       var element = templateFunction(picture);
-      container.appendChild(element);
+      fragment.appendChild(element);
     });
+    container.appendChild(fragment);
   };
 
 
@@ -16,8 +60,8 @@ window.onload = function(){
     xhr.open('GET','data/pictures.json');
     xhr.onload = function(evt){
       var rawData = evt.target.response;
-      var loadedPictures = JSON.parse(rawData);
-      renderPictures(loadedPictures)
+      pictures = JSON.parse(rawData);
+      renderPictures(pictures)
     };
     xhr.send()
   };
@@ -47,4 +91,3 @@ window.onload = function(){
           }, IMAGE_LOAD_TIMEOUT);
     return element;
   };
-}
