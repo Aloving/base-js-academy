@@ -1,25 +1,26 @@
-
+window.onload = function(){
   var loadedData = null;
   var container = document.querySelector('.pictures');
 
   var filters = document.querySelectorAll('.filters-radio');
   var activeFilter = 'filter-popular';
   var pictures = [];
+  var currentPage = 0;
+  var PAGE_SIZE = 12;
+  var filteredPictures = [];
   for(var i = 0; i < filters.length; i++){
     filters[i].onclick = function(evt){
       var clickedElementID = evt.target.id;
-      activeFilter = evt.target.class;
       setActiveFilter(clickedElementID);
     };
   };
 
 
   function setActiveFilter(id){
+    filteredPictures = pictures.slice(0);
     if(activeFilter === id){
       return
     }
-    var filteredPictures = pictures.slice(0);
-
     switch(id){
       case 'filter-popular':
         filteredPictures = pictures.slice(0);
@@ -37,35 +38,49 @@
         });
       break;
     }
-
-    renderPictures(filteredPictures);
+    activeFilter = id;
+    renderPictures(filteredPictures,0,true);
   };
+  window.addEventListener('scroll',function(env){
+    var footerCoordinates = document.querySelector('.footer').getBoundingClientRect();
+    var viewportSize = window.innerHeight;
 
+    if(footerCoordinates.bottom - window.innerHeight <= footerCoordinates.height){
+      renderPictures(filteredPictures,currentPage++);
+    }
+  });
   getPictures();
 
 
-  function renderPictures(pictures){
-    container.innerHTML = '';
+  function renderPictures(pictures, pageNumber, replace){
+    if(replace){
+      container.innerHTML = '';
+    }
+
+    var from = pageNumber * PAGE_SIZE;
+    var to = from + PAGE_SIZE;
+    var pagePictures = pictures.slice(from, to);
+
     var fragment = document.createDocumentFragment();
-    pictures.forEach(function(picture){
+    pagePictures.forEach(function(picture){
       var element = templateFunction(picture);
       fragment.appendChild(element);
     });
     container.appendChild(fragment);
   };
-
-
+   var
   function getPictures(){
     var xhr = new XMLHttpRequest();
     xhr.open('GET','data/pictures.json');
     xhr.onload = function(evt){
       var rawData = evt.target.response;
-      pictures = JSON.parse(rawData);
-      renderPictures(pictures)
-    };
+      var picturesJSON = JSON.parse(rawData);
+      pictures = picturesJSON;
+      renderPictures(picturesJSON,0)
+    }
+    console.log(pictures);
     xhr.send()
-  };
-
+  }
   function templateFunction(item){
     var template = document.querySelector('#picture-template');
     var element = template.content.children[0].cloneNode(true);
@@ -91,3 +106,4 @@
           }, IMAGE_LOAD_TIMEOUT);
     return element;
   };
+}
