@@ -1,4 +1,4 @@
-
+(function(){
 
   var container = document.querySelector('.pictures');
   var filters = document.querySelectorAll('.filters-radio');
@@ -124,3 +124,4 @@
           }, IMAGE_LOAD_TIMEOUT);
     return element;
   };
+})();

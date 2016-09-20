@@ -110,16 +110,14 @@
    * @return {boolean}
    */
   function resizeFormIsValid() {
-    if (!xInput.value || !sizeInput.value || !yInput.value) {
-      return false;
-    }else if (currentResizer._image.naturalWidth >= +xInput.value + +sizeInput.value &&
-      currentResizer._image.naturalHeight >= +yInput.value + +sizeInput.value  ) {
+      if ((+xInput.value + +sizeInput.value) > currentResizer._image.naturalWidth
+      || (+yInput.value + +sizeInput.value) > currentResizer._image.naturalHeight
+      || xInput.value < 0 || yInput.value < 0){
+        return false;
+      }else{
       return true;
-    }else {
-      return false;
     }
   }
-
    /**
    * Активирует/Деактивирует, кнопку отправки формы кадрирования.
    */
@@ -148,7 +146,6 @@ function getCookie(name) {
     var none = document.querySelector('#upload-filter-none');
     var chrome = document.querySelector('#upload-filter-chrome');
     var sepia = document.querySelector('#upload-filter-sepia');
-    var marvin = document.querySelector('#upload-filter-marvin');
 
     switch (browserCookies.get('upload-filter')) {
       case none.value:
@@ -185,7 +182,7 @@ function getCookie(name) {
   var xInput = resizeForm.elements.x;
   var yInput = resizeForm.elements.y;
   var sizeInput = resizeForm.elements.size;
-
+  console.log(sizeInput);
 
   /**
    * Форма добавления фильтра.
@@ -401,7 +398,27 @@ function getCookie(name) {
     // состояние или просто перезаписывать.
     filterImage.className = 'filter-image-preview ' + filterMap[selectedFilter];
   });
-
+  var resizeForms = document.querySelectorAll('.upload-resize-controls');
+  console.log(resizeForms);
+  var picY = document.querySelector('#resize-y');
+  var picX = document.querySelector('#resize-x');
+  var picSide = document.querySelector('#resize-size');
+window.addEventListener('resizerchange',function(){
+  if(currentResizer){
+    var cropValues = currentResizer.getConstraint();
+    picSide.value = cropValues.side;
+    picX.value = cropValues.x;
+    picY.value = cropValues.y;
+    resizeFormIsValid();
+  }
+});
+resizeForm.addEventListener('input',function(evt){
+  var clickedElement = evt.target;
+  if(clickedElement.classList.contains('upload-resize-control')){
+    resizeFormIsValid();
+    currentResizer.setConstraint(+picX.value, +picY.value, +picSide.value);
+  }
+});
   cleanupResizer();
   updateBackground();
 })();
