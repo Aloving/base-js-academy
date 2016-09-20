@@ -10,7 +10,7 @@
   /** @enum {string} */
 
 
-/*Функция добавления кукисов 
+/*Функция добавления кукисов
 **name,value options {}
 */
 
@@ -109,16 +109,15 @@
    * Проверяет, валидны ли данные, в форме кадрирования.
    * @return {boolean}
    */
-  function resizeFormIsValid() {
-    if (!xInput.value || !sizeInput.value || !yInput.value) {
-      return false;
-    }else if (currentResizer._image.naturalWidth >= +xInput.value + +sizeInput.value && 
-      currentResizer._image.naturalHeight >= +yInput.value + +sizeInput.value  ) {
-      return true;
-    }else {
-      return false;
-    }
-  }
+   function resizeFormIsValid() {
+       if ((+xInput.value + +sizeInput.value) > currentResizer._image.naturalWidth
+       || (+yInput.value + +sizeInput.value) > currentResizer._image.naturalHeight
+       || xInput.value < 0 || yInput.value < 0){
+         return false;
+       }else{
+       return true;
+     }
+   }
 
    /**
    * Активирует/Деактивирует, кнопку отправки формы кадрирования.
@@ -131,7 +130,7 @@
       resizeBtn.disabled = true;
     }
   }
-  
+
   /**
    * Задает фильтр по умолчанию из cookie.
    */
@@ -186,7 +185,7 @@ function getCookie(name) {
   var yInput = resizeForm.elements.y;
   var sizeInput = resizeForm.elements.size;
 
-  
+
   /**
    * Форма добавления фильтра.
    * @type {HTMLFormElement}
