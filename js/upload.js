@@ -274,7 +274,7 @@ function getCookie(name) {
    * Обработка ввода значений в поле формы кадрирования.
    */
 
-  resizeForm.addEventListener('submit',function() {
+  resizeForm.addEventListener('input',function() {
     var maxInputX = currentResizer._image.naturalWidth - sizeInput.value;
     var maxInputY = currentResizer._image.naturalHeight - sizeInput.value;
 
