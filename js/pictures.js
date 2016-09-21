@@ -60,13 +60,16 @@
     renderPictures(filteredPictures,0,true);
   };
 
-
+   var scrollTimeOut;
 
   window.addEventListener('scroll', function(env){
-    if(visibleFooter()){
-      renderPictures(pictures,currentPage++);
-    }
-  })
+    clearTimeout(scrollTimeOut);
+    scrollTimeOut = setTimeout(function(){
+      if(visibleFooter()){
+        renderPictures(pictures,currentPage++);
+      }
+    },100);
+  });
 
   function renderPictures(pictures, pageNumber, replace){
     if(replace){
